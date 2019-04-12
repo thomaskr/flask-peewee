@@ -44,6 +44,14 @@ from wtfpeewee.orm import model_form
 current_dir = os.path.dirname(__file__)
 
 
+class StringifyingEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            json.JSONEncoder.default(self, obj)
+        except TypeError:
+            return str(obj)
+
+
 class AdminModelConverter(BaseModelConverter):
     def __init__(self, model_admin, additional=None):
         super(AdminModelConverter, self).__init__(additional)
@@ -449,7 +457,8 @@ class ModelAdmin(object):
 
             data.extend([{'id': obj._pk, 'repr': str(obj)} for obj in pq.get_list()])
 
-        json_data = json.dumps({'prev_page': prev_page, 'next_page': next_page, 'object_list': data})
+        json_data = json.dumps({'prev_page': prev_page, 'next_page': next_page, 'object_list': data},
+                               cls=StringifyingEncoder)
         return Response(json_data, mimetype='application/json')
 
 
